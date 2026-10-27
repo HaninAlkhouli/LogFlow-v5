@@ -1,0 +1,28 @@
+pipeline:
+  name: error-report
+
+source:
+  type: file
+  params:
+    path: data/access-small.log
+
+stages:
+  - type: parse
+    onError: FAIL_FAST
+    params:
+      format: clf
+  - type: filter
+    onError: FAIL_FAST
+    params:
+      field: status
+      op: ">="
+      value: 400
+  - type: project
+    onError: FAIL_FAST
+    params:
+      fields: [timestamp, clientIp, status, path]
+
+sink:
+  type: file
+  params:
+    path: out/errors.txt

@@ -1,0 +1,41 @@
+pipeline:
+  name: chaos-test
+
+source:
+  type: file
+  params:
+    path: data/access-dirty.log
+
+stages:
+  - type: parse
+    onError: DEAD_LETTER
+    params:
+      format: clf
+      maxLineBytes: 65536
+  - type: validate
+    onError: DEAD_LETTER
+    params:
+      requiredFields: [clientIp, method, path]
+      bytesRange:
+        min: 0
+      statusRange:
+        min: 100
+        max: 599
+      timestampRange:
+        min: "2020-01-01T00:00:00Z"
+        max: "2030-12-31T23:59:59Z"
+      ipFormat: ipv4
+  - type: project
+    onError: FAIL_FAST
+    params:
+      fields: [timestamp, clientIp, method, path, status, bytes]
+
+sink:
+  type: file
+  params:
+    path: out/valid-records.txt
+
+deadLetter:
+  type: file
+  params:
+    path: out/dead-letter.txt

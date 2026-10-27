@@ -1,0 +1,28 @@
+pipeline:
+  name: api-traffic-extract
+
+source:
+  type: file
+  params:
+    path: data/access-small.log
+
+stages:
+  - type: parse
+    onError: FAIL_FAST
+    params:
+      format: clf
+  - type: filter
+    onError: FAIL_FAST
+    params:
+      field: path
+      op: startsWith
+      value: /api/
+  - type: project
+    onError: FAIL_FAST
+    params:
+      fields: [timestamp, clientIp, method, path, status]
+
+sink:
+  type: file
+  params:
+    path: out/api-traffic.txt

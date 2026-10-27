@@ -1,0 +1,22 @@
+pipeline:
+  name: bandwidth-by-client-extract
+
+source:
+  type: file
+  params:
+    path: data/access-small.log
+
+stages:
+  - type: parse
+    onError: FAIL_FAST
+    params:
+      format: clf
+  - type: project
+    onError: FAIL_FAST
+    params:
+      fields: [clientIp, bytes]
+
+sink:
+  type: file
+  params:
+    path: out/bandwidth-by-client.txt

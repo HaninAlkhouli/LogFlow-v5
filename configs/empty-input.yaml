@@ -1,0 +1,33 @@
+pipeline:
+  name: empty-input
+
+source:
+  type: file
+  params:
+    path: data/access-empty.log
+
+stages:
+  - type: parse
+    onError: DEAD_LETTER
+    params:
+      format: clf
+  - type: validate
+    onError: DEAD_LETTER
+    params:
+      requiredFields: [clientIp, method, path]
+      bytesRange: { min: 0 }
+      ipFormat: ipv4
+  - type: project
+    onError: FAIL_FAST
+    params:
+      fields: [timestamp, clientIp, method, path, status, bytes]
+
+sink:
+  type: file
+  params:
+    path: out/empty-valid-records.txt
+
+deadLetter:
+  type: file
+  params:
+    path: out/empty-dead-letter.txt
